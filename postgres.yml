@@ -1,0 +1,43 @@
+---
+- hosts: test-server
+  vars:
+    db_user: dbusername
+    db_name: dbname
+    db_password: dbpassword
+  tasks:
+  - name: install dependencies for postgreSQL
+    apt: name={{ item }} update_cache=true state=latest
+    with_items:
+    - bash
+    - openssl
+    - libssl-dev
+    - libssl-doc
+  - name: install postgreSQL
+    apt: name={{item}} update_cache=true state=present
+    with_items:
+    - postgresql
+    - postgresql-contrib
+    - libpq-dev
+    - python3-psycopg2
+  - name: ensure postgresql service is running
+    service: name=postgresql state=started enabled=yes
+  - name: create the database specified in vars
+    become: true
+    become_user: postgres
+    postgresql_db: name={{ db_name }}
+      template='template0'
+      state=present
+  - name: ensure user has access to the new database
+    become: true
+    become_user: postgres
+    postgresql_user: db={{ db_name }}
+      name={{db_user}}
+      password={{db_password}}
+      priv=ALL
+      state=present
+  - name: ensure user does not have unnecessary permissions
+    become: true
+    become_user: postgres
+    postgresql_user: name={{db_user}}
+      role_attr_flags=NOSUPERUSER,NOCREATEDB
+      state=present
