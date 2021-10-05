@@ -1,0 +1,68 @@
+---
+- name: operations
+  hosts: test-server
+  gather_facts: true
+  tasks:
+    - name: create user
+      user:
+        name: bob
+        state: present
+        shell: /bib/bash 
+
+    - name: copy public key 
+      authorized_key:
+        user: bob
+        state: present
+        key: "{{ lookup('file', '/home/aslam/.ssh/id_rsa.pub')}}" 
+      
+    - name: Install nginx
+      apt: 
+        name: nginx 
+        state: present    
+
+    - name: Install ufw
+        apt: package=ufw state=present
+
+    - name: Configure ufw rules
+        ufw: rule={{ item.rule }} port={{ item.port }} proto={{ item.proto }} from={{item.from}}
+        
+        with_items:
+        - { rule: 'allow', port: '{{ ssh_port | default("55555") }}', proto: 'tcp' , from: '142.93.229.57'}
+
+    - name: Enable ufw logging
+        ufw: logging=on
+        notify:
+        - restart ufw
+
+
+    - name: Enable ufw
+        ufw: state=enabled
+
+    - name: Update SSH configuration to be more secure.
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        validate: 'sshd -t -f %s'
+      with_items:
+        - regexp: "^PasswordAuthentication"
+          line: "PasswordAuthentication no"
+        - regexp: "^PermitRootLogin"
+          line: "PermitRootLogin no"
+        - regexp: "^Port"
+          line: "Port 55555"
+      notify: restart ssh
+
+    - name: checking service status
+      command: systemctl status "{{ item }}"
+        with_items:
+        - sshd
+        register: result
+        ignore_errors: yes
+
+    - name: showing report
+      debug:
+        var: result
+
+...

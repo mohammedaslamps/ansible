@@ -1,0 +1,11 @@
+---
+- name: create ssh key  # create ssh key
+  hosts: test-server
+  gather_facts: true
+  tasks:
+    - name: create a ssh key for user
+      ansible.builtin.user:
+        name: bob
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa

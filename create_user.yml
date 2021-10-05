@@ -1,0 +1,10 @@
+---
+- name: create user
+  hosts: test-server    # group of server where operation to be carried
+  gather_facts: true
+  tasks:
+    - name: create user
+      user:
+        name: bob   # user bob is created in remote host
+        state: present
+        shell: /bib/bash 

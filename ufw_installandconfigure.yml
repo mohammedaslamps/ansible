@@ -1,0 +1,22 @@
+---
+- name: Install ufw and configure 
+  hosts: test-server  # group of server where operation to be carried
+  gather_facts: true
+  tasks:
+    - name: Install ufw
+        apt: package=ufw state=present
+
+    - name: Configure ufw rules
+        ufw: rule={{ item.rule }} port={{ item.port }} proto={{ item.proto }} from={{item.from}}
+        
+        with_items:
+        - { rule: 'allow', port: '{{ ssh_port | default("55555") }}', proto: 'tcp' , from: '142.93.229.57'} # port=55555 is configured
+
+    - name: Enable ufw logging
+        ufw: logging=on
+        notify:
+        - restart ufw
+
+
+    - name: Enable ufw
+        ufw: state=enabled

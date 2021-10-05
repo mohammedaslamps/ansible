@@ -1,0 +1,9 @@
+---
+- name: Install nginx 
+  hosts: test-server  # group of server where operation to be carried
+  gather_facts: true
+  tasks:
+    - name: Install nginx
+      apt: 
+        name: nginx     # nginx is installed in remote hosts
+        state: present   

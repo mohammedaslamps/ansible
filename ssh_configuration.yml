@@ -1,0 +1,31 @@
+---
+- name: SSH configuration 
+  hosts: test-server  # group of server where operation to be carried
+  gather_facts: true
+  tasks:
+    - name: Update SSH configuration to be more secure.
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        validate: 'sshd -t -f %s'
+      with_items:
+        - regexp: "^PasswordAuthentication"
+          line: "PasswordAuthentication no"     #  PasswordAuthentication = no
+        - regexp: "^PermitRootLogin"
+          line: "PermitRootLogin no"            # PermitRootLogin = no
+        - regexp: "^Port"
+          line: "Port 55555"        # Port = 55555
+      notify: restart ssh
+
+    - name: checking service status
+      command: systemctl status "{{ item }}"
+        with_items:
+        - sshd
+        register: result
+        ignore_errors: yes
+
+    - name: showing report
+      debug:
+        var: result

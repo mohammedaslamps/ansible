@@ -1,0 +1,14 @@
+---
+- name:  Copying file # here copying sshd_config
+  hosts: test-server
+  become: true
+  tasks:
+    - name: copying file
+      copy:
+        src: /home/aslam/Desktop/sshd_config
+        dest: /etc/ssh/sshd_config    
+        mode: 0644
+    - name: restart ssh
+      service:
+        name: ssh
+        state: restarted

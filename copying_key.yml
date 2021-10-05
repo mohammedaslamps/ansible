@@ -1,0 +1,10 @@
+---
+- name: copy public key
+  hosts: test-server    # group of server where operation to be carried
+  gather_facts: true
+  tasks:
+    - name: copy public key 
+      authorized_key:
+        user: bob     #user where key to be copied
+        state: present
+        key: "{{ lookup('file', '/home/aslam/.ssh/id_rsa.pub')}}"  #copying public key of aslam  to newly created user bob
